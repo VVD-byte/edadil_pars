@@ -22,4 +22,3 @@ class pars(DB):
             return json.loads(a.text)
         else:
             print(a.text)
-            assert f'ERROR requests_get status_code = {a.status_code}, url = {_url}'

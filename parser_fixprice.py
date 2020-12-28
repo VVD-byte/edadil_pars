@@ -1,7 +1,7 @@
 from parser import pars
-from bs4 import BeautifulSoup
 import json
 import logging
+from bs4 import BeautifulSoup
 
 logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -55,6 +55,8 @@ class pars_fixprice(pars):
             if not self.get_update_discounts_discount_company(self.magasine_date['name'])[1]:
                 self.add_data_discount_company(self.magasine_date)
                 logging.info(f'{self.magasine_date["name"]} DB discount_company ADD')
+            else:
+                print('update')
 
     #парсит все рубрики и заполняет dict
     def rubric(self):
@@ -67,6 +69,8 @@ class pars_fixprice(pars):
                 if not self.rub[i.find('a').text]:
                     self.rub[i.find('a').text]['src'] = 'https://fix-price.ru' + i.find('a').get('href')
                 break           #######################################################
+            self.clear_all_category()  ################################################
+            self.add_discount_category(self.rub, self.magasine_date['id'])
 
     #парсит id всех товаров данной рубрики
     def pars_page(self, url, data):
@@ -83,9 +87,7 @@ class pars_fixprice(pars):
                 data[_id]['product_name'] = j.text.replace('  ', '').replace('\r', '').replace('\n', '')
                 data[_id]['price'] = all_price[idd].text
                 data[_id]['adult'] = b'0'
-                try:
-                    data[_id]['price_copey'] = str(int(all_price[idd].text) * 60)
-                except: data[_id]['price_copey'] = int(float(all_price[idd].text.replace(',', '.'))//1 * 60 + float(all_price[idd].text.replace(',', '.'))%1 * 60)
+                data[_id]['price_copey'] = str(int(float(all_price[idd].text.replace(',', '.')) * 100))
 
     def pars_data_product(self, data, *args, **kwargs):
         for i in data:
