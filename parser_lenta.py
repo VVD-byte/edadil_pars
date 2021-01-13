@@ -1,59 +1,128 @@
 from parser import pars
 from bs4 import BeautifulSoup
 from db import DB
+import logging.config
+import json
 
 class pars_lenta(pars):
     def __init__(self):
         super().__init__()
+        logging.config.fileConfig('logs/docs/logging_bristol.ini', disable_existing_loggers=False)
+        self.logger_lenta = logging.getLogger(__name__)
+        self.city_id = {
+            'Москва': 'msk',
+            'Санкт-Петербург': 'spb',
+            'Новосибирск': 'nsk',
+            'Екатеринбург': 'ekat',
+            'Казань': 'kazan',
+            'Нижний Новгород': 'nnvgrd',
+            'Челябинск': 'chlb',
+            'Самара': 'smr',
+            'Омск': 'omsk',
+            'Ростов-на-Дону': 'rnd',
+            'Уфа': 'ufa',
+            'Красноярск': 'krsn',
+            'Воронеж ': 'vrn',
+            'Пермь': 'prm',
+            'Волгоград': 'vlg',
+        }
         self.cookies = {
-            "_ga": "GA1.2.1035808337.1605876331",
-            "_gcl_au": "1.1.432327209.1605883098",
-            "_gid": "GA1.2.617334113.1606133628",
-            "_tm_lt_sid": "1605883100142.227595",
-            "_ym_d": "1605883100",
-            "_ym_isad": "1",
-            "_ym_uid": "1605876331784480800",
             "lentaT2": "msk",
-            "tmr_lvid": "3e47e430bf08d135d26bad0259bb6985",
-            "tmr_lvidTS": "1605876331023",
-            "tmr_reqNum": "382",
-            ".ASPXANONYMOUS": "H-BFys-HdTa6WkcthkkIHSXTwP22AkiKHeANox-io8scp5E1go1n5uB0ovfLiFrrhQDiH-Rc4Ani_rlnSeRDN4OH8nGxYsUCO2LBtmPspYhA3UuT78tb6tYZm0FwDRSoujK4MQ2",
-            "ASP.NET_SessionId": "heu1x0ugjxubkbchcjtkpmkp",
-            "CityCookie": "msk",
-            "CustomerId": "5426db0013594778a9fff587295e97cd",
-            "KFP_DID": "041f6096-0fd7-5167-d86e-7518e7b07722",
-            "oxxfgh": "aac7db98-31c2-4ea7-9aa3-ded2974f5946#0#1800000#5000",
-            "ReviewedSkus": "455714",
-            "Store": "0183",
-            "tmr_detect": "1%7C1606134048258",
-            "UseCookieNotification": "true",
+            'CityCookie': 'msk',
         }
         self.headers = {
-            'User-Agent':'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.66 Safari/537.36',
-            'Content-Type':'application/json',
-            'Host':'lenta.com',
-            'Origin':'https://lenta.com',
-            'Referer':'https://lenta.com/catalog/myaso-ptica-kolbasa/',
-        }
-        self.data = {
-            'filters': [],
-            'limit': 24,
-            'nodeCode': 'gd6dd9b5e854cf23f28aa622863dd6913', #'gd6dd9b5e854cf23f28aa622863dd6913',
-            'offset': 44,
-            'sortingType': 'ByPriority',
-            'tag': '',
-            'typeSearch': 1,
-            'updateFilters': True,
+            'User-Agent': 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Mobile Safari/537.36}'
         }
         self.url = 'https://lenta.com/catalog/'
         self.url_api = 'https://lenta.com/api/v1/skus/list'
-        self.return_data = {
-            'name':'Лента',
+        self.rub = {}
+        self.magasine_date = {'id': 16700, 'name': 'lenta', 'original_logo_url': '', 'discount_count': 0}
+        self.id_plus = 0
+        self.data = {
+            'filters': [],
+            'limit': 1000,
+            'nodeCode': "cf0349a2de3bac83f8d359ff8b960c798",
+            'offset': 0,
+            'pricesRange': 'null',
+            'sortingType': "ByPriority",
+            'tag': "",
+            'typeSearch': 1,
+            'updateFilters': True,
         }
 
-    def get_start_url(self):
-        #soup = BeautifulSoup(self.requests_get(self.url, self.headers, cookies = self.cookies), 'lxml')
-        print(self.requests_post(self.url_api, self.headers, self.data, self.cookies))
+    def start_pars(self):
+        self.clear_all()
+        try:
+            if self.get_update_discounts_discount_company(self.magasine_date['name'])[0]:
+                self.magasine_date['original_logo_url'] = self.get_soup('https://lenta.com/catalog/').find('a', {'class':'header__logo'}).find('img').get('src')
+                for i in self.city[:1]:
+                    self.rub = {}
+                    if i in self.city_id:
+                        self.id_plus = self.city_id_all[i]
+                        self.logger_lenta.info(f'lenta Выбран город {i}')
+                        self.cookies['lentaT2'] = self.city_id[i]
+                        self.cookies['CityCookie'] = self.city_id[i]
+                        self.logger_lenta.info(f'lenta start parsing rubric {i}')
+                        self.rubric()
+                        self.logger_lenta.info(f'lenta start parsing tovar {i}')
+                        self.pars_id_tovar()
+                        self.add_discount_city_company(i, self.magasine_date['id'] + self.id_plus)
+            if self.get_update_discount_filials(self.magasine_date['name']):
+                self.magasine_date['discount_count'] = self.get_len_discount(self.magasine_date['id'])
+                if not self.get_update_discounts_discount_company(self.magasine_date['name'])[1]:
+                    self.add_data_discount_company(self.magasine_date)
+                    self.logger_lenta.info(f'lenta {self.magasine_date["name"]} DB discount_company ADD')
+        except Exception as e:
+            self.logger_lenta.exception(f'Error start_pars lenta')
+        self.logger_lenta.info("END PARS lenta")
+        self.test()
+
+    def rubric(self):
+        json_ = json.loads(self.get_soup(self.url).find('div', {'class':'header__catalog-menu-container'}).get('data-menu'))
+        for i in json_['groups'][:1]:       ####################убрать [:1]
+            self.rub[i['name']] = {}
+            for j in i['childNodes']:
+                self.rub[i['name']][j['name']] = {}
+                for q in j['childNodes']:
+                    self.rub[i['name']][j['name']][q['name']] = {'code':q['code'],
+                                                                 'src':'hpps://'######не убирать ни в коем случае!!!!
+                                                                 }
+        self.add_discount_category(self.rub, self.magasine_date['id'])
+
+    def pars_id_tovar(self, *args, **kwargs):
+        for w in self.rub:
+            for j in self.rub[w]:
+                for q in self.rub[w][j]:
+                    self.data['nodeCode'] = self.rub[w][j][q]['code']
+                    for i in self.requests_post(self.url_api, self.headers, self.data, self.cookies)['skus']:
+                        data = {}
+                        data['original_url'] = 'https://lenta.com' + i['skuUrl']
+                        data['original_id'] = i['code']
+                        data['adult'] = False
+                        data['thumbnail_url'] = i['imageUrl']
+                        data['product_name'] = i['title']
+                        if '9999' not in i['promoEnd']:
+                            data['price'] = int(float(i['cardPrice']['value']) * 100)
+                            data['old_price_note'] = i['regularPrice']['value']
+                            data['promo_type'] = 'PERCENT'
+                            data['promo_sort_hint'] = i['promoPercent']
+                            data['promo_str'] = f'{data["promo_sort_hint"]}%'
+                        else: data['price'] = int(float(i['regularPrice']['value']) * 100)
+                        data['description'] = i['description']
+                        if i['isWeightProduct']: data['value_note'] = '₽/кг'
+                        else: data['value_note'] = '₽/шт'
+                        data['original_company_id'] = self.magasine_date['id'] + self.id_plus
+                        self.add_data_discount(data, company_id = self.magasine_date['id'], *args, **kwargs)
+
+    def clear_text(self, text):
+        return text.replace('  ', '').replace('\n', '').replace('\r', '')
+
+    def get_soup(self, url):
+        a = self.requests_get(url, self.headers, cookies = self.cookies)
+        if a:
+            return BeautifulSoup(a, 'lxml')
+        else:
+            return False
 
     #название магазина и его лого
     #город и его id
@@ -72,3 +141,7 @@ class pars_lenta(pars):
     #тип акции
     #цифровое значение акции
     #краткое опесание акции
+
+if __name__ == "__main__":
+    a = pars_lenta()
+    a.start_pars()

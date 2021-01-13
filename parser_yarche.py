@@ -1,14 +1,15 @@
 import json
 from parser import pars
-import logging
+import logging.config
 from bs4 import BeautifulSoup
 from requests import ConnectionError
 
 class pars_yarche(pars):
     def __init__(self):
         super().__init__()
+        logging.config.fileConfig('logs/docs/logging_yarche.ini', disable_existing_loggers=False)
         self.logger_yarche = logging.getLogger(__name__)
-        self.logger_yarche.addHandler(logging.FileHandler('logs/yarche.log'))
+
         self.city_id = {
             'Москва': '16375',
             'Новосибирск': '16915',
@@ -18,7 +19,7 @@ class pars_yarche(pars):
         }
         self.url = 'https://yarcheplus.ru/category'
         self.city_id = {
-                'Москва':'2830a22ace8d3c709af55294c6b20c905c310190-3aeab777cfd3c135a41b78bf08ab1c0335940fa6',
+                'Москва':'9b7a0df48d25b5c2e76a02c54ccbfbc8ced90480-7a0d48babd20b824d5eda9523f71c67c2d639b43',
                 'Новосибирск':'cdde72ec4b8afa454c65721f83d0544ac72e488a-283456e23a26a069cbb0537782e7ad18ca747890',
                 } ## cookies token привязан к городу
         self.rub = {}
@@ -45,10 +46,10 @@ class pars_yarche(pars):
                 if not self.get_update_discounts_discount_company(self.magasine_date['name'])[1]:
                     self.add_data_discount_company(self.magasine_date)
                     self.logger_yarche.info(f'yarche {self.magasine_date["name"]} DB discount_company ADD')
-                else:
-                    print('update')
         except Exception as e:
-            self.logger_fixprice.exception(f'Error start_pars yarche')
+            self.logger_yarche.exception(f'Error start_pars yarche')
+        self.logger_yarche.info("END PARS YARCHE")
+        print("END YARCHE")
 
     def rubric(self):
         try:
@@ -60,13 +61,13 @@ class pars_yarche(pars):
                             self.rub[self.clear_soup_text(i)][self.clear_soup_text(j)] = {'src':'https://yarcheplus.ru' + j.get('href')}
                     if self.rub[self.clear_soup_text(i)] == {}:
                         self.rub[self.clear_soup_text(i)]['src'] = 'https://yarcheplus.ru' + i.get('href')
-            self.logger_fixprice.exception(f'RUBRIC ALL COLLECT yarche')
+            self.logger_yarche.info(f'RUBRIC ALL COLLECT yarche')
         except Exception as e:
-            self.logger_fixprice.exception(f'Error rubric yarche')
+            self.logger_yarche.exception(f'Error rubric yarche')
         try:
             self.add_discount_category(self.rub, self.magasine_date['id'])
         except Exception as e:
-            self.logger_fixprice.exception(f'Error add category rubric yarche')
+            self.logger_yarche.exception(f'Error add category rubric yarche')
 
     def pars_id_tovar(self):
         try:
@@ -84,7 +85,7 @@ class pars_yarche(pars):
                             self.get_tovar(item, rubric1 = i, rubric2 = j, company_id = self.magasine_date['id'])
                             self.rub[i][j] = {}
         except Exception as e:
-            self.logger_fixprice.exception(f'Error pars_id_tovar yarche')
+            self.logger_yarche.exception(f'Error pars_id_tovar yarche')
 
     def get_page_tovar(self, data):
         try:
@@ -110,11 +111,11 @@ class pars_yarche(pars):
                             except: pass
                             data[name]['original_company_id'] = self.magasine_date['id'] + self.id_plus
                         except Exception as e:
-                            self.logger_fixprice.exception(f'Error get_page_tovar page-{i, j} url-{data["src"]} yarche')
+                            self.logger_yarche.exception(f'Error get_page_tovar page-{i, j} url-{data["src"]} yarche')
                 except Exception as e:
-                    self.logger_fixprice.exception(f'Error get_page_tovar page-{i} url-{data["src"]} yarche')
+                    self.logger_yarche.exception(f'Error get_page_tovar page-{i} url-{data["src"]} yarche')
         except Exception as e:
-            self.logger_fixprice.exception(f'Error get_page_tovar all yarche')
+            self.logger_yarche.exception(f'Error get_page_tovar all yarche')
 
     def get_len_page(self, url):
         try:
@@ -127,7 +128,7 @@ class pars_yarche(pars):
             a = self.requests_get(url, self.headers, cookies = self.cookies)
             return BeautifulSoup(a, 'lxml')
         except Exception as e:
-            self.logger_fixprice.exception(f'Error get_soup yarche')
+            self.logger_yarche.exception(f'Error get_soup yarche')
 
     def get_tovar(self, data, *args, **kwargs):
         try:
@@ -138,7 +139,7 @@ class pars_yarche(pars):
                     self.logger_yarche.info(f'yarche ADD DATA {items["product_name"]} - {items["original_id"]} - {items["original_company_id"]}')
                     self.add_data_discount(items, *args, **kwargs)
         except Exception as e:
-            self.logger_fixprice.exception(f'Error get_tovar yarche')
+            self.logger_yarche.exception(f'Error get_tovar yarche')
 
     @staticmethod
     def clear_soup_text(text):

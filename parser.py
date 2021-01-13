@@ -3,13 +3,14 @@ from bs4 import BeautifulSoup
 import json
 from db import DB
 from error import Status_code_error
-import logging
+import logging.config
 
 class pars(DB):
     def __init__(self):
         super().__init__()
+        logging.config.fileConfig('logs/docs/logging_parser.ini', disable_existing_loggers=False)
         self.logger_parser = logging.getLogger(__name__)
-        self.logger_parser.addHandler(logging.FileHandler('logs/parser.log'))
+
         self.city_id_all = {
             'Москва': 1,
             'Санкт-Петербург': 2,
@@ -37,8 +38,17 @@ class pars(DB):
             self.logger_parser.info(f'ERROR REQUESTS GET {a.status_code} - {_url}')
             return False
 
+    def requests_get_(self, _url, head, dat = {}, cookies = {}):
+        a = requests.get(_url, headers = head, data = dat, cookies = cookies)
+        if a.status_code == 200:
+            self.logger_parser.info(f'REQUESTS GET {a.status_code} - {_url}')
+            return a.text, a.url
+        else:
+            self.logger_parser.info(f'ERROR REQUESTS GET {a.status_code} - {_url}')
+            return False
+
     def requests_post(self, _url, head, dat = {}, cookies = {}):
-        a = requests.post(_url, headers = head, data = dat, cookies = cookies)
+        a = requests.post(_url, headers = head, json = dat, cookies = cookies)
         if a.status_code == 200:
             self.logger_parser.info(f'REQUESTS POST {a.status_code} - {_url}')
             return json.loads(a.text)

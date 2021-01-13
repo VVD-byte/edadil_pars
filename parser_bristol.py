@@ -1,13 +1,14 @@
 from parser import pars
 import json
-import logging
+import logging.config
 from bs4 import BeautifulSoup
 
 class pars_bristol(pars):
     def __init__(self):
         super().__init__()
+        logging.config.fileConfig('logs/docs/logging_bristol.ini', disable_existing_loggers=False)
         self.logger_bristol = logging.getLogger(__name__)
-        self.logger_bristol.addHandler(logging.FileHandler('logs/bristol.log'))
+
         self.url = 'https://bristol.ru/catalog/'
         self.headers = {
             'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36',
@@ -124,10 +125,10 @@ class pars_bristol(pars):
                 if not self.get_update_discounts_discount_company(self.magasine_date['name'])[1]:
                     self.add_data_discount_company(self.magasine_date)
                     self.logger_bristol.info(f'bristol {self.magasine_date["name"]} DB discount_company ADD')
-                else:
-                    print('update')
         except Exception as e:
-            self.logger_fixprice.exception(f'Error start_pars bristol')
+            self.logger_bristol.exception(f'Error start_pars bristol')
+        self.logger_bristol.info("END PARS BRISTOL")
+        print("END BRISTOL")
 
     #ссылки рубрик
     def rubric(self):
@@ -168,7 +169,10 @@ class pars_bristol(pars):
         self.add_data_discount(data, *args, **kwargs)
 
     def get_count_page(self, url):
-        return int(self.get_soup(url).find_all('div', {'class':'btn pag-btn'})[-1].text.replace('\n', ''))
+        try:
+            return int(self.get_soup(url).find_all('div', {'class':'btn pag-btn'})[-1].text.replace('\n', ''))
+        except:
+            return 2
 
     def get_soup(self, url):
         a = self.requests_get(url, self.headers, cookies = self.cookies)

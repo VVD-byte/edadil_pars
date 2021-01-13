@@ -1,13 +1,14 @@
 from parser import pars
 import json
-import logging
+import logging.config
 from bs4 import BeautifulSoup
 
 class pars_fixprice(pars):
     def __init__(self):
         super().__init__()
+        logging.config.fileConfig('logs/docs/logging_fixprice.ini', disable_existing_loggers=False)
         self.logger_fixprice = logging.getLogger(__name__)
-        self.logger_fixprice.addHandler(logging.FileHandler('logs/fixprice.log'))
+
         self.city_id = {
             'Москва':'16375',
             'Санкт-Петербург':'16589',
@@ -55,10 +56,10 @@ class pars_fixprice(pars):
                 if not self.get_update_discounts_discount_company(self.magasine_date['name'])[1]:
                     self.add_data_discount_company(self.magasine_date)
                     self.logger_fixprice.info(f'fixprice {self.magasine_date["name"]} DB discount_company ADD')
-                else:
-                    print('update')
         except Exception as e:
             self.logger_fixprice.exception(f'Error start_pars fixprice')
+        self.logger_fixprice.info("END PARS FIXPRICE")
+        print("END FIXPRICE")
 
     #парсит все рубрики и заполняет dict
     def rubric(self):

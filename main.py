@@ -8,21 +8,24 @@ import threading
 import schedule
 import datetime
 import time
-import logging
+import logging.config
+from db import DB
 
 class start_pars:
     def __init__(self):
+        logging.config.fileConfig('logs/docs/logging_main.ini', disable_existing_loggers=False)
         self.logger_main = logging.getLogger(__name__)
-        self.logger_main.addHandler(logging.FileHandler('logs/main.log'))
 
     def start(self):
-        self.logger_main.info('start')
-        schedule.every(TIME_PARS_BRISTOL).day.at((datetime.timedelta(seconds = 10) + datetime.datetime.now()).strftime("%H:%M")).do(self.start_pars_bristol)
+        self.logger_main.info('start all')
+        schedule.every(TIME_PARS_BRISTOL).day.at((datetime.timedelta(minutes = 1) + datetime.datetime.now()).strftime("%H:%M")).do(self.start_pars_bristol)
         self.logger_main.info('SCHEDULE ADD PARS_BRISTOL')
-        schedule.every(TIME_PARS_YARCHE).day.at((datetime.timedelta(seconds = 10) + datetime.datetime.now()).strftime("%H:%M")).do(self.start_pars_yarche)
+        schedule.every(TIME_PARS_YARCHE).day.at((datetime.timedelta(minutes = 1) + datetime.datetime.now()).strftime("%H:%M")).do(self.start_pars_yarche)
         self.logger_main.info('SCHEDULE ADD PARS_YARCHE')
-        schedule.every(TIME_PARS_FIXPRICE).day.at((datetime.timedelta(seconds = 10) + datetime.datetime.now()).strftime("%H:%M")).do(self.start_pars_fixprice)
+        schedule.every(TIME_PARS_FIXPRICE).day.at((datetime.timedelta(minutes = 1) + datetime.datetime.now()).strftime("%H:%M")).do(self.start_pars_fixprice)
         self.logger_main.info('SCHEDULE ADD PARS_FIXPRICE')
+        schedule.every(TIME_PARS_PERECT).day.at((datetime.timedelta(minutes=1) + datetime.datetime.now()).strftime("%H:%M")).do(self.start_pars_perecr)
+        self.logger_main.info('SCHEDULE ADD PARS_PERECRESTOK')
         while True:
             try:
                 schedule.run_pending()
@@ -32,7 +35,6 @@ class start_pars:
 
     def start_pars_bristol(self):
         try:
-            print(11)
             a = pars_bristol()
             x = threading.Thread(target = a.start_pars)
             self.logger_main.info('START PARS_BRISTOL')
@@ -44,21 +46,31 @@ class start_pars:
         try:
             a = pars_fixprice()
             x = threading.Thread(target = a.start_pars)
-            self.logger_main.exception("START PARS_FIXPRICE")
+            self.logger_main.info("START PARS_FIXPRICE")
             x.start()
         except Exception as e:
-            self.logger_main.exception("Error start_pars_fixprice")
+            self.logger_main.exception("Error start_pars_yarche")
+
+    def start_pars_perecr(self):
+        try:
+            a = pars_perecr()
+            x = threading.Thread(target = a.start_pars)
+            self.logger_main.info("START PARS_PERECRESTOK")
+            x.start()
+        except Exception as e:
+            self.logger_main.exception("Error start_pars_yarche")
 
     def start_pars_yarche(self):
         try:
             a = pars_yarche()
             x = threading.Thread(target = a.start_pars)
-            self.logger_main.exception("START PARS_YARCHE")
+            self.logger_main.info("START PARS_YARCHE")
             x.start()
         except Exception as e:
             self.logger_main.exception("Error start_pars_yarche")
 
 def main():
+    DB().clear_all()
     a = start_pars()
     a.start()
 
