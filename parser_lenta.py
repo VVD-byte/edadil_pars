@@ -51,11 +51,10 @@ class pars_lenta(pars):
         }
 
     def start_pars(self):
-        self.clear_all()
         try:
             if self.get_update_discounts_discount_company(self.magasine_date['name'])[0]:
                 self.magasine_date['original_logo_url'] = self.get_soup('https://lenta.com/catalog/').find('a', {'class':'header__logo'}).find('img').get('src')
-                for i in self.city[:1]:
+                for i in self.city[:1]:     ###########################
                     self.rub = {}
                     if i in self.city_id:
                         self.id_plus = self.city_id_all[i]
@@ -75,11 +74,11 @@ class pars_lenta(pars):
         except Exception as e:
             self.logger_lenta.exception(f'Error start_pars lenta')
         self.logger_lenta.info("END PARS lenta")
-        self.test()
+        print(f"end {self.magasine_date['name']}")
 
     def rubric(self):
         json_ = json.loads(self.get_soup(self.url).find('div', {'class':'header__catalog-menu-container'}).get('data-menu'))
-        for i in json_['groups'][:1]:       ####################убрать [:1]
+        for i in json_['groups']:       ########################
             self.rub[i['name']] = {}
             for j in i['childNodes']:
                 self.rub[i['name']][j['name']] = {}
@@ -112,7 +111,7 @@ class pars_lenta(pars):
                         if i['isWeightProduct']: data['value_note'] = '₽/кг'
                         else: data['value_note'] = '₽/шт'
                         data['original_company_id'] = self.magasine_date['id'] + self.id_plus
-                        self.add_data_discount(data, company_id = self.magasine_date['id'], *args, **kwargs)
+                        self.add_data_discount(data, company_id = self.magasine_date['id'], rubric1=w, rubric2=j, rubric3=q, *args, **kwargs)
 
     def clear_text(self, text):
         return text.replace('  ', '').replace('\n', '').replace('\r', '')

@@ -40,8 +40,8 @@ class pars_fixprice(pars):
     def start_pars(self):
         try:
             if self.get_update_discounts_discount_company(self.magasine_date['name'])[0]:
-                self.magasine_date['original_logo_url'] = self.get_soup('https://fix-price.ru/catalog/').find_all('img', {'class':'card-img'})[0].get('src')
-                for i in self.city:
+                self.magasine_date['original_logo_url'] = 'https://fix-price.ru' + self.get_soup('https://fix-price.ru/catalog/').find_all('img', {'class':'card-img'})[0].get('src')
+                for i in self.city[:1]:
                     self.rub = {}
                     self.id_plus = self.city_id_all[i]
                     self.logger_fixprice.info(f'fixprice Выбран город {i}')
@@ -59,7 +59,7 @@ class pars_fixprice(pars):
         except Exception as e:
             self.logger_fixprice.exception(f'Error start_pars fixprice')
         self.logger_fixprice.info("END PARS FIXPRICE")
-        print("END FIXPRICE")
+        print(f"end {self.magasine_date['name']}")
 
     #парсит все рубрики и заполняет dict
     def rubric(self):

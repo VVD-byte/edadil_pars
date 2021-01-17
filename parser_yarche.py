@@ -25,12 +25,12 @@ class pars_yarche(pars):
         self.rub = {}
         self.cookies = {}
         self.id_plus = 0
-        self.magasine_date = {'id': 16500, 'name': 'fix_price', 'original_logo_url': 'https://yarcheplus.ru/static/images/build/logo_new_year-3df8111aeb8588581d57287795917fb8.svg', 'discount_count': 0}
+        self.magasine_date = {'id': 16500, 'name': 'yarche', 'original_logo_url': 'https://yarcheplus.ru/static/images/build/logo_new_year-3df8111aeb8588581d57287795917fb8.svg', 'discount_count': 0}
 
     def start_pars(self):
         try:
             if self.get_update_discounts_discount_company(self.magasine_date['name'])[0]:
-                for i in self.city:
+                for i in self.city[:1]:
                     self.rub = {}
                     if i in self.city_id:
                         self.id_plus = self.city_id_all[i]
@@ -49,7 +49,7 @@ class pars_yarche(pars):
         except Exception as e:
             self.logger_yarche.exception(f'Error start_pars yarche')
         self.logger_yarche.info("END PARS YARCHE")
-        print("END YARCHE")
+        print(f"end {self.magasine_date['name']}")
 
     def rubric(self):
         try:

@@ -108,7 +108,7 @@ class pars_bristol(pars):
     def start_pars(self):
         try:
             if self.get_update_discounts_discount_company(self.magasine_date['name'])[0]:
-                for i in self.city:
+                for i in self.city[:1]:
                     self.rub = {}
                     if i in self.city_id:
                         self.id_plus = self.city_id_all[i]
@@ -128,7 +128,7 @@ class pars_bristol(pars):
         except Exception as e:
             self.logger_bristol.exception(f'Error start_pars bristol')
         self.logger_bristol.info("END PARS BRISTOL")
-        print("END BRISTOL")
+        print(f"end {self.magasine_date['name']}")
 
     #ссылки рубрик
     def rubric(self):

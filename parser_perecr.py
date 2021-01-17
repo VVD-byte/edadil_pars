@@ -33,7 +33,7 @@ class pars_perecr(pars):
         try:
             if self.get_update_discounts_discount_company(self.magasine_date['name'])[0]:
                 self.magasine_date['original_logo_url'] = 'https://www.vprok.ru/' + self.get_soup(self.url).find('img', {'class':'xfnew-header__logo-image xfnew-header__logo-image--new-year'}).get('src')
-                for i in self.city:
+                for i in self.city[:1]:
                     self.rub = {}
                     if i in self.city_id:
                         self.id_plus = self.city_id_all[i]
@@ -51,9 +51,11 @@ class pars_perecr(pars):
                     self.logger_perecr.info(f'perecrestok {self.magasine_date["name"]} DB discount_company ADD')
         except Exception as e:
             self.logger_perecr.exception(f'Error start_pars perecrest')
+        self.logger_perecr.info("END PARS perecr")
+        print(f"end {self.magasine_date['name']}")
 
     def rubric(self):
-        for id_, i in enumerate(self.get_soup(self.url).find_all('a', {'class':'xf-catalog-categories__link'})[:24]):
+        for id_, i in enumerate(self.get_soup(self.url).find_all('a', {'class':'xf-catalog-categories__link'})[:24]):    ##########НА 24
             self.rub[i.text.replace('  ', '').replace('\n', '')] = {}
             try:
                 for j in self.get_soup('https://www.vprok.ru' + i.get('href')).find_all('a', {'class':'xf-filter__item-label xf-ripple js-xf-ripple xf-ripple_gray'}):

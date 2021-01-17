@@ -1,9 +1,11 @@
 import pymysql
+import logging.config
+import datetime
 from pymysql.cursors import DictCursor
 from contextlib import closing
 from pymysql import Error
-from datetime import datetime
-import logging.config
+from datetime import datetime, timedelta
+from settings import *
 
 class DB:
     def __init__(self):
@@ -14,6 +16,8 @@ class DB:
         self.user = 'root'
         self.passwd = 'toor'
         self.db_name = 'pars'
+
+        self.db_price_removed = """UPDATE discount_city_company_price SET removed = IF(last_modified_date<%s AND company_id=%s, True, False);"""
 
         self.get_city = """SELECT * FROM discount_city;"""
         self.get_update_discounts = """SELECT update_discounts FROM discount_company where name=%s"""
@@ -76,9 +80,12 @@ class DB:
                         if i != None:
                             self.add_discount_discount_category(i, original_id, company_id, original_company_id)
                             break
-                    self.add_discount_city_company_price(dat, *args, **kwargs)
                 except Exception as e:
                     self.logger_DB.exception(f'Error add_data_discount {dat}')
+                try:
+                    self.add_discount_city_company_price(dat, *args, **kwargs)
+                except Exception as e:
+                    self.logger_DB.exception(f'Error add_discount_city_company_price {dat}')
 
     def add_data_discount_company(self, dat, *args, **kwargs):
         with closing(pymysql.connect(host = self.host, user = self.user, password = self.passwd, db = self.db_name, use_unicode=True, charset='utf8')) as connection:
@@ -314,6 +321,13 @@ class DB:
                 cursor.execute(self.proof_data_discount_discount_category_, (discount_id, category_id))
                 if cursor.fetchall()[0]['count(*)'] == 0: return True
                 else: return False
+
+    def remove_removed(self, id_):
+        with closing(pymysql.connect(host = self.host, user = self.user, password = self.passwd, db = self.db_name, charset='utf8mb4', cursorclass=DictCursor)) as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(self.db_price_removed, (datetime.now() - timedelta(days=dat[id_]), id_))
+                self.logger_DB.info(f'remove_removed {id_}')
+                connection.commit()
 
     ####    tests
     def clear_all(self):
