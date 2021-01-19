@@ -19,8 +19,8 @@ class pars_yarche(pars):
         }
         self.url = 'https://yarcheplus.ru/category'
         self.city_id = {
-                'Москва':'9b7a0df48d25b5c2e76a02c54ccbfbc8ced90480-7a0d48babd20b824d5eda9523f71c67c2d639b43',
-                'Новосибирск':'cdde72ec4b8afa454c65721f83d0544ac72e488a-283456e23a26a069cbb0537782e7ad18ca747890',
+                'Москва':'982184de39625b6b475864d496f2fa99721aba83-2141c69682300722a5634a198489c6f4948d7b7f',
+                'Новосибирск':'60f6f8a68507edab3f76a96a64085fab6e8a5653-8cbb26227a11c62bf2a2e3d9938ed5c0b58433f2',
                 } ## cookies token привязан к городу
         self.rub = {}
         self.cookies = {}

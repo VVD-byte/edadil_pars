@@ -106,7 +106,7 @@ class pars_lenta(pars):
                             data['promo_type'] = 'PERCENT'
                             data['promo_sort_hint'] = i['promoPercent']
                             data['promo_str'] = f'{data["promo_sort_hint"]}%'
-                        else: data['price'] = int(float(i['regularPrice']['value']) * 100)
+                        else: data['price'] = int(float(i['cardPrice']['value']) * 100)
                         data['description'] = i['description']
                         if i['isWeightProduct']: data['value_note'] = '₽/кг'
                         else: data['value_note'] = '₽/шт'

@@ -173,7 +173,7 @@ class DB:
         with closing(pymysql.connect(host=self.host, user=self.user, password=self.passwd, db=self.db_name, use_unicode=True, charset='utf8')) as connection:
             with connection.cursor() as cursor:
                 create_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')#
-                last_modified_date = create_date#
+                last_modified_date = datetime.now() - timedelta(days = 2)
                 adult = data.get('adult', False)#
                 company_id = kwargs.get('company_id', 16399)#
                 date_end = data.get('date_end', None)
